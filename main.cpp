@@ -14,4 +14,13 @@ int main() {
 
     cout << "Hello " << firstName
          << ". Github gives you a Githug!" << endl;
+
+    std::ofstream out ("hello.txt");
+    if(!out) {
+        cout << "you broke it" << endl;
+        return 1;
+    }
+    out << "10\n11\n12" << endl;
+
+    out.close();
 }
