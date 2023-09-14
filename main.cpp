@@ -1,10 +1,17 @@
 #include <iostream>
 #include <fstream>
 
+#include <string>
+using std::cin, std::cout, std::endl;
+using std::string;
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    std::ofstream writer("output.txt");
-    writer << "Hello World!" << std::endl;
-    return 0;
+    string firstName {};
+    string lastName {};
+
+    cout << "Enter your first and last name: ";
+    cin >> firstName >> lastName;
+
+    cout << "Hello " << firstName
+         << ". Github gives you a Githug!" << endl;
 }
