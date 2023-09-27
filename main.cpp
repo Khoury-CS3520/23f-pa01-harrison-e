@@ -17,7 +17,7 @@
  *
  * 1. remove useless information
  *  - remove all HTML tags (ex. <li>, </li>, <!DOCTYPE html>)
- *  - NOTE: any HTML that is within <pre>..</pre> tags should be retained!
+ *  - NOTE: anything that is within \<pre\>..\</pre\> tags should be retained!
  *
  * 2. tokenize
  *  - break the remaining text into an order sequence of individual tokens
@@ -62,21 +62,30 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // !! processing pipeline !!, process input
     reader.open(argv[1]);
 
-    // holds the contents of input during processing
-    string pipeline {};
+    // remove HTML from input text
+    string sansHTML = deHTML(reader);
 
-    // TODO: remove HTML tags (except those inside of <pre></pre> tags
-    pipeline = deHTML(reader);
+    // test functionality
 
-    for (char c : pipeline) {
+    /**
+    // test deHTML()
+    cout << "input without html:" << endl;
+    for (char& c : sansHTML) {
         cout << c;
     }
+    */
 
     // TODO: tokenize
-    // tokenize();
+    vector<string> tokens;
+    // tokenize w/ references
+    tokenize(sansHTML, tokens);
+    // testing tokenize()
+    cout << "Tokenized input: " << endl;
+    for (string token : tokens) {
+        cout << token << endl;
+    }
 
     // TODO: remove stop words
     // removeStops();
@@ -87,7 +96,7 @@ int main(int argc, char* argv[]) {
     // write to output file
 
     // the rest...
-    std::cout << "\nrest of the program..." << std::endl;
+    cout << "rest of the program..." << endl;
 
     // close reader and writer to free resources
     reader.close();

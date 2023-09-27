@@ -7,7 +7,8 @@
 
 #include <fstream>
 #include <string>
-using std::string, std::ifstream;
+#include <vector>
+using std::string, std::ifstream, std::vector;
 
 /**
  * Write the contents of reader into writer, excluding any HTML tags,
@@ -28,5 +29,17 @@ string deHTML(ifstream &reader);
  *         '?' if the sequence is not defined
  */
 char interpretEntity(string entName);
+
+/**
+ * Breaks text into individual tokens
+ * A token is a space-delimited sequence of characters
+ * Anything within an HTML preformatted block is one token
+ *
+ * @param sansHTML A constant reference to the string resulting from deHTML(), to be tokenized
+ * @param tokens A reference to the vector to which all tokens will be added
+ */
+ void tokenize(const string &sansHTML, vector<string> &tokens);
+
+
 
 #endif //INC_3520_PA01_PIPELINE_H
