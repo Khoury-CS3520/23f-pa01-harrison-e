@@ -72,24 +72,34 @@ int main(int argc, char* argv[]) {
     tokenize(sansHTML, tokens);
     const unsigned long NUM_TOKENS_WITH_STOP = tokens.size();
 
+    /**
     // testing tokenize()
     cout << "Tokenized input: " << endl;
     for (string token : tokens) {
         cout << token << endl;
     }
     cout << "# of tokens before removing stop words: " << NUM_TOKENS_WITH_STOP << endl;
+    */
 
     // remove punctuations from tokens
     removePunc(tokens);
 
-    // TODO: remove stop words
-    // const unsigned int NUM_STOPS_REMOVED = removeStops(tokens);
-    // const unsigned long NUM_TOKENS_NO_STOP = tokens.size();
+    // remove stop words
+    const unsigned int NUM_STOPS_REMOVED = removeStops(tokens);
+    const unsigned long NUM_TOKENS_NO_STOP = tokens.size();
+
+
 
     // TODO: clean up text
-    // cleanTokens();
-    // const int NUM_CHARS
+    const int NUM_CHARS = polishTokens(tokens);
 
+    for (string token : tokens) {
+        cout << token << endl;
+    }
+    cout << "# of tokens before removing stop words: " << NUM_TOKENS_WITH_STOP << endl;
+    cout << "# of tokens after removing stop words: " << NUM_TOKENS_NO_STOP << endl;
+    cout << "# of stop words removed: " << NUM_STOPS_REMOVED << endl;
+    cout << "# of chars after cleaning: " << NUM_CHARS << endl;
 
     // TODO: stats!
 

@@ -3,9 +3,11 @@
 #include <fstream>
 #include <string>
 #include <cctype>
+#include <algorithm>
 using std::cout, std::cerr, std::endl,
 std::ispunct, std::isalnum, std::isdigit,
-std::ifstream;
+std::ifstream, std::find, std::remove_if,
+std::tolower;
 
 // constants
 const char TAG_OPEN    {'<'};
@@ -119,38 +121,87 @@ void removePunc(vector<string> &tokens) {
             if (ispunct(tokens.at(i).front()))
                 tokens.at(i).erase(0,1);
             // check middle chars
-            for (int j = 1; j < tokens.at(i).size() - 1; j++) {
-                // if we find a decimal that is not surrounded by digits
-                if (tokens.at(i).at(j) == PERIOD) {
-                    if (!isdigit(tokens.at(i).at(j-1)) ||
-                        !isdigit(tokens.at(i).at(j+1)))
-                        tokens.at(i).erase(j,1);
-                }
-                // if we find an apostrophe or hyphen not between two printable chars
-                else if (tokens.at(i).at(j) == APOSTROPHE ||
-                         tokens.at(i).at(j) == HYPHEN) {
-                    if (!isalnum(tokens.at(i).at(j-1)) ||
-                        !isalnum(tokens.at(i).at(j+1)))
-                        tokens.at(i).erase(j,1);
-                }
-                // if we find any other funky marks
-                else {
-                    if (ispunct(tokens.at(i).at(j)))
-                        tokens.at(i).erase(j,1);
+            if (!tokens.at(i).empty()) {
+                for (int j = 1; j < tokens.at(i).length() - 1; j++) {
+                    // if we find a decimal that is not surrounded by digits
+                    if (tokens.at(i).at(j) == PERIOD) {
+                        if (tokens.at(i).length() >= 3 &&
+                            !isdigit(tokens.at(i).at(j - 1)) ||
+                            !isdigit(tokens.at(i).at(j + 1)))
+                            tokens.at(i).erase(j, 1);
+                    }
+                        // if we find an apostrophe or hyphen not between two printable chars
+                    else if (tokens.at(i).at(j) == APOSTROPHE ||
+                              tokens.at(i).at(j) == HYPHEN) {
+                        if (tokens.at(i).length() >= 3 &&
+                            !isalnum(tokens.at(i).at(j - 1)) ||
+                            !isalnum(tokens.at(i).at(j + 1)))
+                            tokens.at(i).erase(j, 1);
+                    }
+                        // if we find any other funky marks
+                    else {
+                        if (!tokens.at(i).empty() &&
+                            ispunct(tokens.at(i).at(j)))
+                            tokens.at(i).erase(j, 1);
+                    }
                 }
             }
             // check last char
-            if (ispunct(tokens.at(i).back()))
-                tokens.at(i).erase(tokens.at(i).length()-1,1);
+            if (!tokens.at(i).empty() &&
+                ispunct(tokens.at(i).back())) {
+                tokens.at(i).erase(tokens.at(i).length() - 1, 1);
+            }
         }
     }
 }
 
-const unsigned int removeStops(vector<string> &tokens) {
-    unsigned int numStopsRemoved {0};
+bool isStopWord(string &s) {
+    vector<string> stopWords = {
+            "i", "me", "my", "myself", "we", "our", "ours", "ourselves",
+            "you", "your", "yours", "yourself", "yourselves", "he", "him",
+            "his", "himself", "she", "her", "hers", "herself", "it", "its",
+            "itself", "they", "them", "their", "theirs", "themselves", "what",
+            "which", "who", "whom", "this", "that", "these", "those", "am", "is",
+            "are", "was", "were", "be", "been", "being", "have", "has", "had",
+            "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but",
+            "if", "or", "because", "as", "until", "while", "of", "at", "by", "for",
+            "with", "about", "against", "between", "into", "through", "during",
+            "before", "after", "above", "below", "to", "from", "up", "down", "in",
+            "out", "on", "off", "over", "under", "again", "further", "then", "once",
+            "here", "there", "when", "where", "why", "how", "all", "any", "both",
+            "each", "few", "more", "most", "other", "some", "such", "no", "nor",
+            "not", "only", "own", "same", "so", "than", "too", "very", "s", "t",
+            "can", "will", "just", "don", "should", "now"
+    };
 
-    
+    string ls = {};
+    for (char c : s) {
+        ls += tolower(c);
+    }
 
-    return numStopsRemoved;
+    // search for lowercase s in stopWords
+    if(find(stopWords.begin(), stopWords.end(), ls) != stopWords.end())
+        return true;
+
+    return false;
 }
 
+const unsigned int removeStops(vector<string> &tokens) {
+    const unsigned int ORIG_SIZE = tokens.size();
+    tokens.erase(remove_if(tokens.begin(), tokens.end(),
+                           [](string t){ return isStopWord(t); }), tokens.end());
+    return ORIG_SIZE - tokens.size();
+}
+
+const unsigned int polishTokens(vector<string> &tokens) {
+    tokens.erase(remove_if(tokens.begin(), tokens.end(),
+                           [](string t) { return (t == "" || t == OPEN_PRE || t == CLOSE_PRE);}),
+                 tokens.end());
+    unsigned int charsCount {0};
+    for (string token : tokens) {
+        for (char c : token) {
+            charsCount++;
+        }
+    }
+    return charsCount;
+}

@@ -15,7 +15,6 @@ using std::string, std::ifstream, std::vector;
  * EXCEPT any preformatted text
  *
  * @param reader a file stream reading from the input file
- *
  * @return a vector of chars that is free of HTML tags (except preformatted)
  */
 string deHTML(ifstream &reader);
@@ -47,10 +46,19 @@ void tokenize(const string &sansHTML, vector<string> &tokens);
  * - apostrophes between two printable characters (e.g. it's)
  * - hyphens between two printable characters (e.g. super-duper), as opposed to hyphens surrounded partially or
  *   fully by whitespace
+ *
  * @param tokens A reference to the vector of tokens
  * @return
  */
 void removePunc(vector<string> &tokens);
+
+/**
+ * Determines if the input string is a stop word
+ *
+ * @param s The string to be tested
+ * @return True if it is a stop word, False otherwise
+ */
+bool isStopWord(string &s);
 
 /**
  * Remove stop words from a given vector of tokens
@@ -60,5 +68,12 @@ void removePunc(vector<string> &tokens);
  * @return How many stop words were removed
  */
 const unsigned int removeStops(vector<string> &tokens);
+
+/**
+ * Do some final polishing on tokens, removing empty tokens and pre tags
+ *
+ * @param tokens A reference to the vector of tokens
+ */
+const unsigned int polishTokens(vector<string> &tokens);
 
 #endif //INC_3520_PA01_PIPELINE_H
