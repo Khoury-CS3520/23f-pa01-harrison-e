@@ -9,7 +9,7 @@ env:
   ###   Output Files will follow input files
   ###   Note: These should be the actual names of the files.  No double quotes
   # INPUT_FILES:
-  # OUTPUT_FILES:
+  # OUTPUT_FILES: $GITHUB_WORKSPACE/data_files/sample_output.txt
 
 jobs:
   build:
@@ -54,7 +54,7 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         shell: bash
         #run: ./$EXE_NAME $INPUT_FILES $OUTPUT_FILES
-        run: ./$EXE_NAME
+        run: ./$EXE_NAME $GITHUB_WORKSPACE/data_files/simple.html $GITHUB_WORKSPACE/data_files/sample_out.txt
 
 #      - name: Copy output files to artifact directory
 #        working-directory: ${{runner.workspace}}/build
