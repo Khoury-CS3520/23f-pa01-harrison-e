@@ -1,59 +1,68 @@
 #include "../../include/headers/pipeline.h"
 #include <iostream>
+#include <fstream>
 #include <string>
-using std::cout, std::cerr, std::endl;
+#include <cctype>
+using std::cout, std::cerr, std::endl,
+std::ispunct, std::isalnum, std::isdigit,
+std::ifstream;
 
 // constants
-const char TAG_OPEN  {'<'};
-const char TAG_CLOSE {'>'};
-const char ENT_OPEN  {'&'};
-const char ENT_CLOSE {';'};
-const char SPACE     {' '};
-const char NEWLINE   {10};
+const char TAG_OPEN    {'<'};
+const char TAG_CLOSE   {'>'};
+const char ENT_OPEN    {'&'};
+const char ENT_CLOSE   {';'};
+const char SPACE       {' '};
+const char NEWLINE     {10};
+const char HYPHEN      {'-'};
+const char APOSTROPHE  {'\''};
+const char PERIOD      {'.'};
+const string OPEN_PRE  {"<pre>"};
+const string CLOSE_PRE {"</pre>"};
 
 string deHTML(ifstream &reader) {
-    char current {};        // character being read from input
+    char currentChar {};        // character being read from input
     bool inPre {false};     // are we in a preformatted block?
-    string output {};          // output string
+    string output {};       // output string
 
-    while (reader.get(current)) {
+    while (reader.get(currentChar)) {
         // read a tag
-        if (current == TAG_OPEN) {                  // current = <
+        if (currentChar == TAG_OPEN) {                  // current = <
             string tag {};
             if (inPre) {
                 // check for ending of pre
-                while (reader.get(current) && current != TAG_CLOSE)
-                    tag += current;
+                while (reader.get(currentChar) && currentChar != TAG_CLOSE)
+                    tag += currentChar;
                 if (tag.substr(0,4) == "/pre") {
                     inPre = false;
-                    output += "</pre>"; // keep for tokenization phase
+                    output += CLOSE_PRE; // keep for tokenization phase
                 }
             } else {
                 // check for beginning of pre
-                while (reader.get(current) && current != TAG_CLOSE)
-                    tag += current;
+                while (reader.get(currentChar) && currentChar != TAG_CLOSE)
+                    tag += currentChar;
                 if (tag.substr(0,3) == "pre") {
                     inPre = true;
-                    output += "<pre>";  // keep for tokenization phase
+                    output += OPEN_PRE;  // keep for tokenization phase
                 }
             }
         }
 
         // interpret an entity
-        else if (current == ENT_OPEN) {             // current = '&'
+        else if (currentChar == ENT_OPEN) {             // current = '&'
             string entName {};
-            while (reader.get(current) && current != ENT_CLOSE) {
-                entName += current;
+            while (reader.get(currentChar) && currentChar != ENT_CLOSE) {
+                entName += currentChar;
             }
             output += interpretEntity(entName);
         }
 
-        else if (current == NEWLINE && !inPre) {    // current = newline
+        else if (currentChar == NEWLINE && !inPre) {    // current = newline
             output += SPACE;
         }
 
         else {                                      // current != <, &, \n
-            output += current;
+            output += currentChar;
         }
     }
     // return string of input, sans html
@@ -79,64 +88,69 @@ char interpretEntity(const string entName) {
 }
 
 void tokenize(const string &sansHTML, vector<string> &tokens) {
-    bool inPre {false};         // are we in a preformatted block?
     string currentToken {};     // our current token (can have newlines)
-    string currentWord  {};     // our current word  (no newlines, only used for pre)
 
-    for (char current : sansHTML) {
-        currentToken += current;
-        currentWord  += current;
-
-        // handle preformatted token
-        if (inPre) {
-            // words do not include newlines or spaces
-            if (current == NEWLINE || current == SPACE) {
-                currentWord = "";
-            }
-
-            // could we be starting a closing pre?
-            // if we see <, reset current word (accommodate for irregular <)
-            else if (current == TAG_OPEN) {
-                currentWord = TAG_OPEN;
-            }
-
-            // are we ending the pre block?
-            else if (current == TAG_CLOSE && currentWord.substr(0,5) == "</pre>") {
+    for (char currentChar : sansHTML) {
+        if (currentChar == SPACE || currentChar == NEWLINE) {
+            if (!currentToken.empty()) {
                 tokens.push_back(currentToken);
                 currentToken = "";
-                currentWord  = "";
-                inPre = false;
             }
-
-            // if none of these, retain the current word and token
-        }
-
-        // could we be starting a pre tag?
-        // if we see <, reset current word (accommodate for irregular < placement)
-        else if (current == TAG_OPEN) {
-            currentWord = TAG_OPEN;
-        }
-
-        // could we be starting a pre?
-        // if we see e, check current word
-        else if (current == 'e' && currentWord == "<pre") {
-            inPre = true;
-        }
-
-        // if we reach delimiter and NOT in pre
-        else if (current == SPACE) {
-            // to see if we really have a token, remove the space
-            string tokenNoSpace {currentToken.substr(0, currentToken.length() - 1)};
-            // if we have a token, push it to vec
-            if (!tokenNoSpace.empty())
-                tokens.push_back(currentToken);
-            // either way, reset token and word
-            currentToken = "";
-            currentWord = "";
+        } else {
+            currentToken += currentChar;
         }
     }
     // loop over, push remaining token
     if (!currentToken.empty())
         tokens.push_back(currentToken);
+}
+
+void removePunc(vector<string> &tokens) {
+    bool inPre {false};
+
+    for (int i = 0; i < tokens.size(); i++) {
+        if (inPre) {
+            if (tokens.at(i) == CLOSE_PRE)
+                inPre = false;
+        } else if (tokens.at(i) == OPEN_PRE) {
+            inPre = true;
+        } else {
+            // check first char
+            if (ispunct(tokens.at(i).front()))
+                tokens.at(i).erase(0,1);
+            // check middle chars
+            for (int j = 1; j < tokens.at(i).size() - 1; j++) {
+                // if we find a decimal that is not surrounded by digits
+                if (tokens.at(i).at(j) == PERIOD) {
+                    if (!isdigit(tokens.at(i).at(j-1)) ||
+                        !isdigit(tokens.at(i).at(j+1)))
+                        tokens.at(i).erase(j,1);
+                }
+                // if we find an apostrophe or hyphen not between two printable chars
+                else if (tokens.at(i).at(j) == APOSTROPHE ||
+                         tokens.at(i).at(j) == HYPHEN) {
+                    if (!isalnum(tokens.at(i).at(j-1)) ||
+                        !isalnum(tokens.at(i).at(j+1)))
+                        tokens.at(i).erase(j,1);
+                }
+                // if we find any other funky marks
+                else {
+                    if (ispunct(tokens.at(i).at(j)))
+                        tokens.at(i).erase(j,1);
+                }
+            }
+            // check last char
+            if (ispunct(tokens.at(i).back()))
+                tokens.at(i).erase(tokens.at(i).length()-1,1);
+        }
+    }
+}
+
+const unsigned int removeStops(vector<string> &tokens) {
+    unsigned int numStopsRemoved {0};
+
+    
+
+    return numStopsRemoved;
 }
 

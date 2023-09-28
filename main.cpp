@@ -15,14 +15,6 @@
 /**
  * PROCESSING PIPELINE:
  *
- * 1. remove useless information
- *  - remove all HTML tags (ex. <li>, </li>, <!DOCTYPE html>)
- *  - NOTE: anything that is within \<pre\>..\</pre\> tags should be retained!
- *
- * 2. tokenize
- *  - break the remaining text into an order sequence of individual tokens
- *  - a _token_ is a space delimited sequence of characters
- *
  * 3. remove stop words
  *  - remove stop words (words that do not contribute to the meaning of the text)
  *  - stop words listed at https://gist.github.com/sebleier/554280
@@ -62,12 +54,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // open input file
     reader.open(argv[1]);
 
     // remove HTML from input text
     string sansHTML = deHTML(reader);
-
-    // test functionality
 
     /**
     // test deHTML()
@@ -77,26 +68,32 @@ int main(int argc, char* argv[]) {
     }
     */
 
-    // TODO: tokenize
     vector<string> tokens;
-    // tokenize w/ references
     tokenize(sansHTML, tokens);
+    const unsigned long NUM_TOKENS_WITH_STOP = tokens.size();
+
     // testing tokenize()
     cout << "Tokenized input: " << endl;
     for (string token : tokens) {
         cout << token << endl;
     }
+    cout << "# of tokens before removing stop words: " << NUM_TOKENS_WITH_STOP << endl;
+
+    // remove punctuations from tokens
+    removePunc(tokens);
 
     // TODO: remove stop words
-    // removeStops();
+    // const unsigned int NUM_STOPS_REMOVED = removeStops(tokens);
+    // const unsigned long NUM_TOKENS_NO_STOP = tokens.size();
 
     // TODO: clean up text
-    // clean();
+    // cleanTokens();
+    // const int NUM_CHARS
+
+
+    // TODO: stats!
 
     // write to output file
-
-    // the rest...
-    cout << "rest of the program..." << endl;
 
     // close reader and writer to free resources
     reader.close();
