@@ -54,7 +54,11 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         shell: bash
         #run: ./$EXE_NAME $INPUT_FILES $OUTPUT_FILES
-        run: ./$EXE_NAME $GITHUB_WORKSPACE/data_files/sortahard.html $GITHUB_WORKSPACE/data_files/sample_out.txt
+        run: |
+          ./$EXE_NAME $GITHUB_WORKSPACE/data_files/simple.html $GITHUB_WORKSPACE/data_files/simple_out.txt
+          ./$EXE_NAME $GITHUB_WORKSPACE/data_files/sortahard.html $GITHUB_WORKSPACE/data_files/sortahard.txt
+          ./$EXE_NAME $GITHUB_WORKSPACE/data_files/example3.html $GITHUB_WORKSPACE/data_files/example3.txt
+          ./$EXE_NAME $GITHUB_WORKSPACE/data_files/hard.html $GITHUB_WORKSPACE/data_files/hard.txt
 
       - name: Copy output files to artifact directory
         working-directory: ${{runner.workspace}}/build

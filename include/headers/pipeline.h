@@ -40,7 +40,7 @@ void tokenize(const string &sansHTML, vector<string> &tokens);
 
 /**
  * Remove punctuation and special characters from tokens EXCEPT:
- * - any special characters or punctuation inside the HTML of a <pre>..</pre> tag
+ * - any special characters or punctuation inside of a <pre>..</pre> tag
  *   ~ NOTE: pre tags are kept until this point, to make this distinction
  * - decimals in numbers
  * - apostrophes between two printable characters (e.g. it's)
