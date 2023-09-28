@@ -54,21 +54,25 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         shell: bash
         #run: ./$EXE_NAME $INPUT_FILES $OUTPUT_FILES
-        run: ./$EXE_NAME
+        run: |
+          ./$EXE_NAME $GITHUB_WORKSPACE/data_files/simple.html $GITHUB_WORKSPACE/data_files/simple_out.txt
+          ./$EXE_NAME $GITHUB_WORKSPACE/data_files/sortahard.html $GITHUB_WORKSPACE/data_files/sortahard_out.txt
+          ./$EXE_NAME $GITHUB_WORKSPACE/data_files/example3.html $GITHUB_WORKSPACE/data_files/example3_out.txt
+          ./$EXE_NAME $GITHUB_WORKSPACE/data_files/hard.html $GITHUB_WORKSPACE/data_files/hard_out.txt
 
-#      - name: Copy output files to artifact directory
-#        working-directory: ${{runner.workspace}}/build
-#        run: |
-#          mkdir artifacts
-#          for f in $OUTPUT_FILES
-#          do
-#            echo "  Copying $f"
-#            cp $f artifacts/
-#          done
-#
-#      - name: Upload output files to GitHub so they can be reviewed
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: project_output
-#          path: ${{runner.workspace}}/build/artifacts
+      - name: Copy output files to artifact directory
+        working-directory: ${{runner.workspace}}/build
+        run: |
+          mkdir artifacts
+          for f in $GITHUB_WORKSPACE/data_files/*
+          do
+            echo "  Copying $f"
+            cp $f artifacts/
+          done
+
+      - name: Upload output files to GitHub so they can be reviewed
+        uses: actions/upload-artifact@v1
+        with:
+          name: project_output
+          path: ${{runner.workspace}}/build/artifacts
 
