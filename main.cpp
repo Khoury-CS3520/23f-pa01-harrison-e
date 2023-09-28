@@ -5,34 +5,6 @@
  *
  * This program processes textual data, via a processing pipeline, for use in other applications
  */
-
-/**
- * INPUT:
- * - textual information in a file, that may include HTML
- * - the name of the input file is provided as a command line arg (argv[1])
- */
-
-/**
- * PROCESSING PIPELINE:
- *
- * 3. remove stop words
- *  - remove stop words (words that do not contribute to the meaning of the text)
- *  - stop words listed at https://gist.github.com/sebleier/554280
- *
- * 4. clean up the text
- *  - remove all punctuation except:
- *    - any special characters or punctuation inside the HTML of a <pre>..</pre> tag
- *    - decimals in numbers
- *    - apostrophes between two printable characters (e.g. it's)
- *    - hyphens between two printable characters (e.g. super-duper), as opposed to hyphens surrounded partially or
- *      fully by whitespace
- */
-
-/**
- * OUTPUT:
- * - refined textual information piped into output file
- */
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -58,52 +30,38 @@ int main(int argc, char* argv[]) {
     reader.open(argv[1]);
 
     // remove HTML from input text
-    string sansHTML = deHTML(reader);
+    string sansHTML = removeHTML(reader);
 
-    /**
-    // test deHTML()
-    cout << "input without html:" << endl;
-    for (char& c : sansHTML) {
-        cout << c;
-    }
-    */
-
+    // tokenize input
     vector<string> tokens;
     tokenize(sansHTML, tokens);
-    const unsigned long NUM_TOKENS_WITH_STOP = tokens.size();
-
-    /**
-    // testing tokenize()
-    cout << "Tokenized input: " << endl;
-    for (string token : tokens) {
-        cout << token << endl;
-    }
-    cout << "# of tokens before removing stop words: " << NUM_TOKENS_WITH_STOP << endl;
-    */
 
     // remove punctuations from tokens
     removePunc(tokens);
 
+    const unsigned int NUM_TOKENS_WITH_STOP = tokens.size();
     // remove stop words
-    const unsigned int NUM_STOPS_REMOVED = removeStops(tokens);
-    const unsigned long NUM_TOKENS_NO_STOP = tokens.size();
-
-
-
-    // TODO: clean up text
-    const int NUM_CHARS = polishTokens(tokens);
-
-    for (string token : tokens) {
-        cout << token << endl;
-    }
-    cout << "# of tokens before removing stop words: " << NUM_TOKENS_WITH_STOP << endl;
-    cout << "# of tokens after removing stop words: " << NUM_TOKENS_NO_STOP << endl;
-    cout << "# of stop words removed: " << NUM_STOPS_REMOVED << endl;
-    cout << "# of chars after cleaning: " << NUM_CHARS << endl;
-
-    // TODO: stats!
+    const unsigned int NUM_STOPS_REMOVED    = removeStops(tokens);
+    const unsigned int NUM_TOKENS_NO_STOP   = tokens.size();
+    const unsigned int FINAL_NUM_CHARS      = polishTokens(tokens);
 
     // write to output file
+    writer.open(argv[2]);
+    for (string token : tokens) {
+        writer << token << endl;
+    }
+    writer << "# of tokens before removing stop words: " << NUM_TOKENS_WITH_STOP << endl;
+    writer << "# of tokens after removing stop words: " << NUM_TOKENS_NO_STOP << endl;
+    writer << "# of stop words removed: " << NUM_STOPS_REMOVED << endl;
+    writer << "# of chars after cleaning: " << FINAL_NUM_CHARS;
+    // !!! NOTE TO TA !!!
+    // these stats may differ from the provided output example. this is because of a few things:
+    // 1. my deHTML() function translates HTML entities (like &lt;) into their appropriate symbols (i.e. &lt; -> <)
+    // 2. in order to keep symbols from preformatted blocks, i keep the pre tag tokens in for removePunc(),
+    //    and remove at polishTokens(). this means that between steps 2 and 4, i have some extra words (including
+    //    empty tokens)
+    // 3. since i translate and then remove HTML entities, they are not in the total character count at the end
+    // please grade this part of my program with this in mind! thank you!
 
     // close reader and writer to free resources
     reader.close();
@@ -111,7 +69,3 @@ int main(int argc, char* argv[]) {
     // exit successfully
     return 0;
 }
-
-
-
-

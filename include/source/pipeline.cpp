@@ -22,14 +22,14 @@ const char PERIOD      {'.'};
 const string OPEN_PRE  {"<pre>"};
 const string CLOSE_PRE {"</pre>"};
 
-string deHTML(ifstream &reader) {
-    char currentChar {};        // character being read from input
+string removeHTML(ifstream &reader) {
+    char currentChar {};    // character being read from input
     bool inPre {false};     // are we in a preformatted block?
     string output {};       // output string
 
     while (reader.get(currentChar)) {
         // read a tag
-        if (currentChar == TAG_OPEN) {                  // current = <
+        if (currentChar == TAG_OPEN) {
             string tag {};
             if (inPre) {
                 // check for ending of pre
@@ -37,7 +37,7 @@ string deHTML(ifstream &reader) {
                     tag += currentChar;
                 if (tag.substr(0,4) == "/pre") {
                     inPre = false;
-                    output += CLOSE_PRE; // keep for tokenization phase
+                    output += CLOSE_PRE; // keep for punctuation removal
                 }
             } else {
                 // check for beginning of pre
@@ -45,13 +45,13 @@ string deHTML(ifstream &reader) {
                     tag += currentChar;
                 if (tag.substr(0,3) == "pre") {
                     inPre = true;
-                    output += OPEN_PRE;  // keep for tokenization phase
+                    output += OPEN_PRE;  // keep for punctuation removal
                 }
             }
         }
 
         // interpret an entity
-        else if (currentChar == ENT_OPEN) {             // current = '&'
+        else if (currentChar == ENT_OPEN) { // current = '&'
             string entName {};
             while (reader.get(currentChar) && currentChar != ENT_CLOSE) {
                 entName += currentChar;
@@ -59,15 +59,15 @@ string deHTML(ifstream &reader) {
             output += interpretEntity(entName);
         }
 
-        else if (currentChar == NEWLINE && !inPre) {    // current = newline
+        else if (currentChar == NEWLINE) {  // current = newline
             output += SPACE;
         }
 
-        else {                                      // current != <, &, \n
+        else {  // current != <, &, \n
             output += currentChar;
         }
     }
-    // return string of input, sans html
+    // return string of input, without html
     return output;
 }
 
@@ -108,7 +108,7 @@ void tokenize(const string &sansHTML, vector<string> &tokens) {
 }
 
 void removePunc(vector<string> &tokens) {
-    bool inPre {false};
+    bool inPre {false};         // are we in pre?
 
     for (int i = 0; i < tokens.size(); i++) {
         if (inPre) {
@@ -120,7 +120,8 @@ void removePunc(vector<string> &tokens) {
             // check first char
             if (ispunct(tokens.at(i).front()))
                 tokens.at(i).erase(0,1);
-            // check middle chars
+
+            // check middle chars (if there are any)
             if (!tokens.at(i).empty()) {
                 for (int j = 1; j < tokens.at(i).length() - 1; j++) {
                     // if we find a decimal that is not surrounded by digits
@@ -130,7 +131,7 @@ void removePunc(vector<string> &tokens) {
                             !isdigit(tokens.at(i).at(j + 1)))
                             tokens.at(i).erase(j, 1);
                     }
-                        // if we find an apostrophe or hyphen not between two printable chars
+                    // if we find an apostrophe or hyphen not between two printable chars
                     else if (tokens.at(i).at(j) == APOSTROPHE ||
                               tokens.at(i).at(j) == HYPHEN) {
                         if (tokens.at(i).length() >= 3 &&
@@ -138,7 +139,7 @@ void removePunc(vector<string> &tokens) {
                             !isalnum(tokens.at(i).at(j + 1)))
                             tokens.at(i).erase(j, 1);
                     }
-                        // if we find any other funky marks
+                    // if we find any other funky marks
                     else {
                         if (!tokens.at(i).empty() &&
                             ispunct(tokens.at(i).at(j)))
@@ -146,6 +147,7 @@ void removePunc(vector<string> &tokens) {
                     }
                 }
             }
+
             // check last char
             if (!tokens.at(i).empty() &&
                 ispunct(tokens.at(i).back())) {
